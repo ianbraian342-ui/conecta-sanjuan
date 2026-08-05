@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Mi Diario Digital</title>
+
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+    <!-- Encabezado -->
+    <header class="header">
+        <h1>📰 Panel de Administración</h1>
+        <p>Gestión de noticias</p>
+    </header>
+
+    <div class="container">
+        <!-- ===================== LOGIN ===================== -->
+        <div id="login-panel" class="auth-panel">
+            <h2>Iniciar sesión</h2>
+            <p class="auth-subtitulo">Accedé con tu cuenta de administrador</p>
+
+            <div id="login-mensaje" class="mensaje"></div>
+
+            <form id="login-form" novalidate>
+                <div class="form-group" id="login-email-grupo">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="admin@midiario.com">
+                    <span class="campo-error">Ingresá un email válido</span>
+                </div>
+                <div class="form-group" id="login-password-grupo">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" id="login-password" placeholder="••••••••">
+                    <span class="campo-error">Ingresá tu contraseña</span>
+                </div>
+                <button type="submit" class="btn btn-primario btn-block">Entrar</button>
+            </form>
+
+            <p class="auth-switch">
+                ¿No tenés cuenta? <a id="link-registro">Registrate</a>
+            </p>
+        </div>
+
+        <!-- ===================== REGISTRO ===================== -->
+        <div id="registro-panel" class="auth-panel" style="display: none;">
+            <h2>Crear cuenta</h2>
+            <p class="auth-subtitulo">Registrate como administrador del diario</p>
+
+            <div id="registro-mensaje" class="mensaje"></div>
+
+            <form id="registro-form" novalidate>
+                <div class="form-group" id="registro-nombre-grupo">
+                    <label for="registro-nombre">Nombre</label>
+                    <input type="text" id="registro-nombre" placeholder="Tu nombre completo">
+                    <span class="campo-error">Ingresá tu nombre</span>
+                </div>
+                <div class="form-group" id="registro-email-grupo">
+                    <label for="registro-email">Email</label>
+                    <input type="email" id="registro-email" placeholder="admin@midiario.com">
+                    <span class="campo-error">Ingresá un email válido</span>
+                </div>
+                <div class="form-group" id="registro-password-grupo">
+                    <label for="registro-password">Contraseña</label>
+                    <input type="password" id="registro-password" placeholder="Mínimo 6 caracteres">
+                    <span class="campo-error">La contraseña debe tener al menos 6 caracteres</span>
+                </div>
+                <button type="submit" class="btn btn-primario btn-block">Registrarme</button>
+            </form>
+
+            <p class="auth-switch">
+                ¿Ya tenés cuenta? <a id="link-login">Iniciar sesión</a>
+            </p>
+        </div>
+
+        <!-- ===================== PANEL ADMIN ===================== -->
+        <div id="admin-panel" style="display: none;">
+            <!-- Barra superior: usuario y acciones -->
+            <div class="admin-toolbar">
+                <div>
+                    <h2>Noticias</h2>
+                    <p class="admin-usuario">👤 Conectado como: <strong id="nombre-usuario">Administrador</strong></p>
+                </div>
+                <div class="acciones">
+                    <button id="btn-nueva" class="btn btn-primario">➕ Nueva noticia</button>
+                    <button id="btn-cerrar-sesion" class="btn btn-secundario">🚪 Cerrar sesión</button>
+                </div>
+            </div>
+
+            <div id="admin-mensaje" class="mensaje"></div>
+
+            <!-- Formulario para crear/editar noticias -->
+            <div id="form-noticia-wrap" style="display: none;">
+                <form id="form-noticia" class="form-noticia" novalidate>
+                    <h3 id="form-titulo">Nueva noticia</h3>
+                    <input type="hidden" id="noticia-id">
+
+                    <div class="form-group" id="noticia-titulo-grupo">
+                        <label for="noticia-titulo">Título *</label>
+                        <input type="text" id="noticia-titulo" placeholder="Título de la noticia">
+                        <span class="campo-error">El título es obligatorio</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="noticia-subtitulo">Subtítulo</label>
+                        <input type="text" id="noticia-subtitulo" placeholder="Breve descripción">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="noticia-contenido">Contenido</label>
+                        <textarea id="noticia-contenido" rows="6" placeholder="Cuerpo de la noticia..."></textarea>
+                    </div>
+
+                    <div class="form-group" id="noticia-categoria-grupo">
+                        <label for="noticia-categoria">Categoría *</label>
+                        <select id="noticia-categoria">
+                            <option value="">Seleccionar...</option>
+                            <option value="Local">Local</option>
+                            <option value="Nacional">Nacional</option>
+                            <option value="Deportes">Deportes</option>
+                            <option value="Cultura">Cultura</option>
+                            <option value="Economía">Economía</option>
+                            <option value="Tecnología">Tecnología</option>
+                        </select>
+                        <span class="campo-error">Seleccioná una categoría</span>
+                    </div>
+
+                    <div class="form-group" id="noticia-autor-grupo">
+                        <label for="noticia-autor">Autor *</label>
+                        <input type="text" id="noticia-autor" placeholder="Nombre del autor">
+                        <span class="campo-error">El autor es obligatorio</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="noticia-imagen">URL de imagen</label>
+                        <input type="url" id="noticia-imagen" placeholder="https://ejemplo.com/imagen.jpg">
+                    </div>
+
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="noticia-destacado">
+                        <label for="noticia-destacado">⭐ Destacada (aparece primero en portada)</label>
+                    </div>
+
+                    <div class="form-acciones">
+                        <button type="submit" class="btn btn-primario">💾 Guardar</button>
+                        <button type="button" id="btn-cancelar" class="btn btn-secundario">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabla de noticias -->
+            <div class="tabla-wrap">
+                <table class="tabla-noticias">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Categoría</th>
+                            <th>Autor</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/noticias.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginPanel = document.getElementById('login-panel');
+            const registroPanel = document.getElementById('registro-panel');
+            const adminPanel = document.getElementById('admin-panel');
+
+            /* ==================== UTILIDADES ==================== */
+
+            // Mostrar mensajes en el panel admin
+            window.mostrarMensajeAdmin = function(texto, tipo) {
+                const mensaje = document.getElementById('admin-mensaje');
+                mensaje.textContent = texto;
+                mensaje.className = `mensaje mensaje-${tipo} visible`;
+                setTimeout(() => mensaje.classList.remove('visible'), 4000);
+            };
+
+            // Mostrar mensaje en los paneles de auth
+            function mostrarMensajeAuth(idMensaje, texto, tipo) {
+                const mensaje = document.getElementById(idMensaje);
+                mensaje.textContent = texto;
+                mensaje.className = `mensaje mensaje-${tipo} visible`;
+            }
+
+            // Validación básica de un grupo de formulario
+            function validarCampo(grupoId, condicionValida) {
+                const grupo = document.getElementById(grupoId);
+                if (condicionValida()) {
+                    grupo.classList.remove('invalido');
+                    return true;
+                }
+                grupo.classList.add('invalido');
+                return false;
+            }
+
+            function esEmailValido(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+
+            /* ==================== SWITCH LOGIN / REGISTRO ==================== */
+
+            function mostrarLogin() {
+                loginPanel.style.display = 'block';
+                registroPanel.style.display = 'none';
+            }
+
+            function mostrarRegistro() {
+                loginPanel.style.display = 'none';
+                registroPanel.style.display = 'block';
+            }
+
+            document.getElementById('link-registro').addEventListener('click', mostrarRegistro);
+            document.getElementById('link-login').addEventListener('click', mostrarLogin);
+
+            /* ==================== MOSTRAR PANEL SEGÚN SESIÓN ==================== */
+
+            function mostrarPanelCorrecto() {
+                if (verificarSesion()) {
+                    loginPanel.style.display = 'none';
+                    registroPanel.style.display = 'none';
+                    adminPanel.style.display = 'block';
+                    document.getElementById('nombre-usuario').textContent = nombreUsuario();
+                    cargarNoticiasAdmin();
+                } else {
+                    loginPanel.style.display = 'block';
+                    registroPanel.style.display = 'none';
+                    adminPanel.style.display = 'none';
+                }
+            }
+
+            /* ==================== LOGIN ==================== */
+
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const email = document.getElementById('login-email').value.trim();
+                const password = document.getElementById('login-password').value;
+
+                const emailOk = validarCampo('login-email-grupo', () => esEmailValido(email));
+                const passOk = validarCampo('login-password-grupo', () => password.length > 0);
+
+                if (!emailOk || !passOk) return;
+
+                try {
+                    await iniciarSesion(email, password);
+                    mostrarPanelCorrecto();
+                } catch (error) {
+                    mostrarMensajeAuth('login-mensaje', '❌ ' + error.message, 'error');
+                }
+            });
+
+            /* ==================== REGISTRO ==================== */
+
+            document.getElementById('registro-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const nombre = document.getElementById('registro-nombre').value.trim();
+                const email = document.getElementById('registro-email').value.trim();
+                const password = document.getElementById('registro-password').value;
+
+                const nombreOk = validarCampo('registro-nombre-grupo', () => nombre.length >= 3);
+                const emailOk = validarCampo('registro-email-grupo', () => esEmailValido(email));
+                const passOk = validarCampo('registro-password-grupo', () => password.length >= 6);
+
+                if (!nombreOk || !emailOk || !passOk) return;
+
+                try {
+                    await registrarUsuario(email, password, nombre);
+                    mostrarMensajeAuth(
+                        'registro-mensaje',
+                        '✅ Cuenta creada. Revisá tu email para confirmar el registro y luego iniciá sesión.',
+                        'exito'
+                    );
+                    document.getElementById('registro-form').reset();
+                } catch (error) {
+                    mostrarMensajeAuth('registro-mensaje', '❌ ' + error.message, 'error');
+                }
+            });
+
+            /* ==================== CERRAR SESIÓN ==================== */
+
+            document.getElementById('btn-cerrar-sesion').addEventListener('click', function() {
+                cerrarSesion();
+            });
+
+            /* ==================== FORMULARIO DE NOTICIA ==================== */
+
+            // Abrir formulario para nueva noticia (vacío)
+            document.getElementById('btn-nueva').addEventListener('click', function() {
+                limpiarFormularioNoticia();
+                document.getElementById('form-noticia-wrap').style.display = 'block';
+                document.getElementById('noticia-titulo').focus();
+            });
+
+            // Cancelar edición
+            document.getElementById('btn-cancelar').addEventListener('click', function() {
+                document.getElementById('form-noticia-wrap').style.display = 'none';
+            });
+
+            // Guardar (crear o actualizar) con validación
+            document.getElementById('form-noticia').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const titulo = document.getElementById('noticia-titulo').value.trim();
+                const categoria = document.getElementById('noticia-categoria').value;
+                const autor = document.getElementById('noticia-autor').value.trim();
+
+                const tituloOk = validarCampo('noticia-titulo-grupo', () => titulo.length > 0);
+                const categoriaOk = validarCampo('noticia-categoria-grupo', () => categoria !== '');
+                const autorOk = validarCampo('noticia-autor-grupo', () => autor.length > 0);
+
+                if (!tituloOk || !categoriaOk || !autorOk) return;
+
+                const id = document.getElementById('noticia-id').value;
+                const datos = {
+                    titulo,
+                    subtitulo: document.getElementById('noticia-subtitulo').value.trim(),
+                    contenido: document.getElementById('noticia-contenido').value.trim(),
+                    categoria,
+                    autor,
+                    imagen_url: document.getElementById('noticia-imagen').value.trim(),
+                    destacado: document.getElementById('noticia-destacado').checked
+                };
+
+                try {
+                    if (id) {
+                        await actualizarNoticia(id, datos);
+                        mostrarMensajeAdmin('Noticia actualizada correctamente ✅', 'exito');
+                    } else {
+                        await crearNoticia(datos);
+                        mostrarMensajeAdmin('Noticia creada correctamente ✅', 'exito');
+                    }
+                    document.getElementById('form-noticia-wrap').style.display = 'none';
+                    cargarNoticiasAdmin();
+                } catch (error) {
+                    mostrarMensajeAdmin('❌ ' + error.message, 'error');
+                }
+            });
+
+            /* ==================== INICIO ==================== */
+
+            mostrarPanelCorrecto();
+        });
+    </script>
+</body>
+</html>

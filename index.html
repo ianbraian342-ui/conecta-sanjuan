@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Diario Digital</title>
+
+    <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+    <!-- Encabezado -->
+    <header class="header">
+        <h1>📰 Mi Diario Digital</h1>
+        <p>Información veraz y actualizada</p>
+    </header>
+
+    <!-- Contenedor principal: grid de noticias -->
+    <div class="container">
+        <div id="noticias-container">
+            <div class="loading">Cargando noticias</div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/noticias.js"></script>
+    <script>
+        // Cargar las noticias automáticamente al abrir la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarNoticiasPortada();
+        });
+    </script>
+</body>
+</html>
