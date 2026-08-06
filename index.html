@@ -14,10 +14,24 @@
         <p>Información veraz y actualizada</p>
     </header>
 
-    <!-- Contenedor principal: grid de noticias -->
+    <!-- Contenedor principal -->
     <div class="container">
+        <!-- Menú de categorías (filtros tipo píldora) -->
+        <nav class="categorias-menu" id="categorias-menu" aria-label="Filtrar por categoría">
+            <button class="btn-pill activo" data-categoria="">Todas</button>
+        </nav>
+
+        <!-- Grid de noticias -->
         <div id="noticias-container">
             <div class="loading">Cargando noticias</div>
+        </div>
+    </div>
+
+    <!-- Modal de detalle de noticia (contenido completo + comentarios) -->
+    <div id="modal-noticia" class="modal-overlay" style="display: none;" aria-hidden="true">
+        <div class="modal-contenido" role="dialog" aria-modal="true" aria-label="Noticia">
+            <button class="modal-cerrar" id="btn-cerrar-modal" aria-label="Cerrar">✕</button>
+            <div id="modal-cuerpo"></div>
         </div>
     </div>
 
@@ -25,10 +39,32 @@
     <script src="js/config.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/noticias.js"></script>
+    <script src="js/comentarios.js"></script>
     <script>
-        // Cargar las noticias automáticamente al abrir la página
         document.addEventListener('DOMContentLoaded', function() {
+            // Cargar noticias y categorías automáticamente al abrir la página
             cargarNoticiasPortada();
+            cargarCategorias();
+
+            // Filtro por categoría (delegación de eventos sobre el menú)
+            document.getElementById('categorias-menu').addEventListener('click', function(e) {
+                const btn = e.target.closest('.btn-pill');
+                if (!btn) return;
+
+                this.querySelectorAll('.btn-pill').forEach(b => b.classList.remove('activo'));
+                btn.classList.add('activo');
+
+                filtrarPorCategoria(btn.dataset.categoria);
+            });
+
+            // Cerrar modal: botón, clic fuera o tecla Escape
+            document.getElementById('btn-cerrar-modal').addEventListener('click', cerrarDetalleNoticia);
+            document.getElementById('modal-noticia').addEventListener('click', function(e) {
+                if (e.target === this) cerrarDetalleNoticia();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') cerrarDetalleNoticia();
+            });
         });
     </script>
 </body>

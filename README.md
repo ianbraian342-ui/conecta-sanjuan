@@ -6,8 +6,16 @@ Un diario digital construido con **HTML, CSS y JavaScript vanilla**, que usa **S
 
 El proyecto consta de dos partes:
 
-- **Portada pública (`index.html`)**: muestra las noticias publicadas en un grid de tarjetas (3 columnas en desktop, 1 en mobile), con imagen, categoría, título, subtítulo, autor y fecha.
-- **Panel administrativo (`admin.html`)**: permite registrarse e iniciar sesión como administrador, crear/editar/eliminar noticias y marcarlas como destacadas.
+- **Portada pública (`index.html`)**: muestra las noticias publicadas en un grid de tarjetas (3 columnas en desktop, 1 en mobile), con imagen, categoría, título, subtítulo, autor y fecha. Incluye menú de filtros por categoría, y al hacer clic en una tarjeta se abre la noticia completa con su contenido formateado y un sistema de comentarios.
+- **Panel administrativo (`admin.html`)**: permite registrarse e iniciar sesión como administrador, crear/editar/eliminar noticias con **editor de texto enriquecido (Quill)**, **subir imágenes a Supabase Storage**, y **moderar comentarios** (aprobar/eliminar).
+
+### Funcionalidades agregadas
+
+1. **Subida de imágenes**: el formulario del admin usa `<input type="file">`, sube la imagen al bucket `noticias-imagenes` de Supabase Storage, guarda su URL pública en `imagen_url` y muestra una vista previa. Al editar no se elimina la imagen antigua.
+2. **Editor de texto enriquecido**: el campo `contenido` usa Quill.js (cargado por CDN). El contenido se guarda como HTML y se renderiza con formato en la portada.
+3. **Menú de categorías**: botones tipo "píldora" que filtran las noticias por categoría (obtenidas con `SELECT DISTINCT categoria`) + botón "Todas".
+4. **Diseño responsivo**: mobile (1 columna), tablet (2 columnas), desktop (3 columnas). El menú de categorías hace scroll horizontal en móvil y las tablas del admin tienen scroll horizontal.
+5. **Comentarios**: los lectores pueden comentar cada noticia (quedan pendientes hasta ser aprobados). El admin los modera en una sección dedicada. Los comentarios se sanitizan antes de mostrarse.
 
 ## Requisitos técnicos
 
@@ -23,21 +31,26 @@ El proyecto consta de dos partes:
   - `destacado` (boolean, default false)
   - `fecha_publicacion` (timestamptz)
 - Auth habilitado en Supabase con **Email + Password**.
+- Un bucket de Storage llamado **`noticias-imagenes`** (público) para la subida de imágenes.
+- La tabla **`comentarios`** creada con el script del archivo `sql/comentarios.sql`.
 - Una cuenta de **Cloudflare** para desplegar con Cloudflare Pages.
 
 ## Estructura del proyecto
 
 ```
 mi-diario/
-├── index.html          # Portada pública
-├── admin.html          # Panel administrativo (login, registro, gestión)
+├── index.html          # Portada pública (filtros, modal de detalle, comentarios)
+├── admin.html          # Panel administrativo (login, registro, gestión, Quill, moderación)
 ├── css/
-│   └── estilo.css      # Estilos (mobile first)
+│   └── estilo.css      # Estilos (mobile first, responsivo)
 ├── js/
 │   ├── config.js       # Credenciales de Supabase
-│   ├── supabase.js     # Cliente REST y CRUD de noticias
+│   ├── supabase.js     # Cliente REST, CRUD de noticias/comentarios y Storage
 │   ├── auth.js         # Autenticación (login, registro, logout)
-│   └── noticias.js     # Renderizado de noticias (portada y admin)
+│   ├── noticias.js     # Renderizado de noticias (portada y admin)
+│   └── comentarios.js  # Comentarios (portada) y moderación (admin)
+├── sql/
+│   └── comentarios.sql # Tabla comentarios + políticas RLS + Storage
 └── assets/
     └── imagenes/       # Imágenes estáticas del proyecto
 ```
@@ -92,7 +105,12 @@ create table public.noticias (
 
 5. Copiá la **Project URL** y la **publishable key** desde **Settings → API**.
 
-6. Editá el archivo `js/config.js` con esos valores:
+6. Ejecutá el script **`sql/comentarios.sql`** en el **SQL Editor**. Esto crea:
+   - El bucket **`noticias-imagenes`** (público) con sus políticas de Storage.
+   - La tabla **`comentarios`** con índices.
+   - Las políticas **RLS** de comentarios (todos leen los aprobados, cualquiera puede comentar, solo administradores aprueban/eliminan).
+
+7. Editá el archivo `js/config.js` con esos valores:
 
 ```js
 const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
@@ -129,6 +147,9 @@ wrangler pages deploy . --project-name=mi-diario
 
 1. Entrá a `admin.html`.
 2. Registrate (o iniciá sesión si ya tenés cuenta).
-3. Creá noticias desde el formulario.
+3. Creá noticias desde el formulario: escribí el contenido con el editor enriquecido y subí una imagen con el botón de archivo.
 4. Marcá alguna como **Destacada** para que aparezca primero en portada.
-5. Verificá la portada en `index.html`.
+5. Verificá la portada en `index.html`: filtrá por categoría y hacé clic en una noticia para leerla completa y comentar.
+6. Modera los comentarios (aprobar/eliminar) en la sección **Moderación de comentarios** del panel admin.
+
+> 💡 Los comentarios nuevos se guardan como **pendientes** y solo se muestran en portada después de aprobarlos.

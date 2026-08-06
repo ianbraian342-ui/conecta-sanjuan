@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - Mi Diario Digital</title>
 
+    <!-- Quill.js editor de texto enriquecido -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+
     <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
     <!-- Encabezado -->
     <header class="header">
         <h1>📰 Panel de Administración</h1>
-        <p>Gestión de noticias</p>
+        <p>Gestión de noticias y comentarios</p>
     </header>
 
     <div class="container">
@@ -105,9 +108,10 @@
                         <input type="text" id="noticia-subtitulo" placeholder="Breve descripción">
                     </div>
 
-                    <div class="form-group">
-                        <label for="noticia-contenido">Contenido</label>
-                        <textarea id="noticia-contenido" rows="6" placeholder="Cuerpo de la noticia..."></textarea>
+                    <!-- Editor de texto enriquecido (Quill.js) -->
+                    <div class="form-group" id="noticia-contenido-grupo">
+                        <label for="editor-quill">Contenido</label>
+                        <div id="editor-quill"></div>
                     </div>
 
                     <div class="form-group" id="noticia-categoria-grupo">
@@ -130,9 +134,14 @@
                         <span class="campo-error">El autor es obligatorio</span>
                     </div>
 
+                    <!-- Subida de imagen a Supabase Storage -->
                     <div class="form-group">
-                        <label for="noticia-imagen">URL de imagen</label>
-                        <input type="url" id="noticia-imagen" placeholder="https://ejemplo.com/imagen.jpg">
+                        <label for="noticia-imagen">Imagen (subir archivo)</label>
+                        <input type="file" id="noticia-imagen" accept="image/*">
+                        <p class="hint">Si no elegís una imagen nueva, se mantiene la actual.</p>
+                        <div class="imagen-preview-wrap" id="imagen-preview-wrap">
+                            <img id="imagen-preview" alt="Vista previa de la imagen">
+                        </div>
                     </div>
 
                     <div class="form-group checkbox">
@@ -162,14 +171,37 @@
                     <tbody id="tabla-body"></tbody>
                 </table>
             </div>
+
+            <!-- Moderación de comentarios -->
+            <div class="admin-seccion">
+                <h3>💬 Moderación de comentarios</h3>
+                <p class="admin-usuario">Los comentarios nuevos quedan pendientes hasta que los apruebes.</p>
+                <div class="tabla-wrap">
+                    <table class="tabla-noticias tabla-comentarios">
+                        <thead>
+                            <tr>
+                                <th>Noticia</th>
+                                <th>Nombre</th>
+                                <th>Comentario</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-comentarios"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Scripts -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
     <script src="js/config.js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/noticias.js"></script>
+    <script src="js/comentarios.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const loginPanel = document.getElementById('login-panel');
@@ -232,6 +264,7 @@
                     adminPanel.style.display = 'block';
                     document.getElementById('nombre-usuario').textContent = nombreUsuario();
                     cargarNoticiasAdmin();
+                    cargarComentariosAdmin();
                 } else {
                     loginPanel.style.display = 'block';
                     registroPanel.style.display = 'none';
@@ -296,6 +329,22 @@
 
             /* ==================== FORMULARIO DE NOTICIA ==================== */
 
+            // Inicializar el editor de texto enriquecido (Quill)
+            window.quillEditor = new Quill('#editor-quill', {
+                theme: 'snow',
+                placeholder: 'Escribí el cuerpo de la noticia...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['link', 'blockquote'],
+                        ['clean']
+                    ]
+                }
+            });
+
             // Abrir formulario para nueva noticia (vacío)
             document.getElementById('btn-nueva').addEventListener('click', function() {
                 limpiarFormularioNoticia();
@@ -308,7 +357,19 @@
                 document.getElementById('form-noticia-wrap').style.display = 'none';
             });
 
-            // Guardar (crear o actualizar) con validación
+            // Vista previa al seleccionar un archivo de imagen
+            document.getElementById('noticia-imagen').addEventListener('change', function() {
+                const archivo = this.files && this.files[0] ? this.files[0] : null;
+                window.imagenArchivo = archivo;
+
+                if (archivo) {
+                    setVistaPrevia(URL.createObjectURL(archivo));
+                } else {
+                    setVistaPrevia(window.imagenUrlActual || '');
+                }
+            });
+
+            // Guardar (crear o actualizar) con validación y subida de imagen
             document.getElementById('form-noticia').addEventListener('submit', async function(e) {
                 e.preventDefault();
 
@@ -322,14 +383,26 @@
 
                 if (!tituloOk || !categoriaOk || !autorOk) return;
 
+                // Subir la imagen nueva a Supabase Storage antes de guardar
+                let imagenUrl = window.imagenUrlActual || '';
+                if (window.imagenArchivo) {
+                    try {
+                        mostrarMensajeAdmin('⏳ Subiendo imagen...', 'exito');
+                        imagenUrl = await subirImagen(window.imagenArchivo);
+                    } catch (error) {
+                        mostrarMensajeAdmin('❌ ' + error.message, 'error');
+                        return;
+                    }
+                }
+
                 const id = document.getElementById('noticia-id').value;
                 const datos = {
                     titulo,
                     subtitulo: document.getElementById('noticia-subtitulo').value.trim(),
-                    contenido: document.getElementById('noticia-contenido').value.trim(),
+                    contenido: getContenidoEditor().trim(),
                     categoria,
                     autor,
-                    imagen_url: document.getElementById('noticia-imagen').value.trim(),
+                    imagen_url: imagenUrl,
                     destacado: document.getElementById('noticia-destacado').checked
                 };
 
